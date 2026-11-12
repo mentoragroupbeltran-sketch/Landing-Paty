@@ -1,0 +1,43 @@
+import type { Metadata, Viewport } from "next";
+import "@fontsource/poppins/600.css";
+import "@fontsource/poppins/700.css";
+import "@fontsource/poppins/800.css";
+import "@fontsource/dm-sans/400.css";
+import "@fontsource/dm-sans/500.css";
+import "@fontsource/dm-sans/700.css";
+import "./globals.css";
+import Tracking from "@/components/Tracking";
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
+  title: "Mentora | Tu inglés no tiene por qué seguir esperando",
+  description:
+    "Aprende inglés online, a tu ritmo y desde donde estés. Avanza por niveles alineados al MCER.",
+  openGraph: {
+    title: "Tu inglés no tiene por qué seguir esperando | Mentora",
+    description:
+      "Aprende inglés online, a tu ritmo y desde donde estés. Avanza por niveles alineados al MCER.",
+    type: "website",
+    locale: "es_PE",
+  },
+  robots: { index: process.env.NEXT_PUBLIC_ALLOW_INDEXING === "true", follow: true },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#101B2E",
+  width: "device-width",
+  initialScale: 1,
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="es-PE">
+      <body className="antialiased">
+        {children}
+        <Tracking />
+      </body>
+    </html>
+  );
+}

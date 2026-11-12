@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@theme {
+  --color-oxford: #101b2e;
+  --color-oxford-800: #16243b;
+  --color-oxford-700: #1d2e4a;
+  --color-indigo: #6265ff;
+  --color-indigo-400: #8184ff;
+  --color-indigo-600: #4f52e6;
+  --color-tiffany: #a3e8da;
+  --color-columbia: #d0e7ff;
+  --color-smoke: #dbdddd;
+  --color-shamrock: #1e9b6a;
+  --color-error: #b3261e;
+  --color-error-soft: #ffb4ab;
+
+  --font-display: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  background-color: var(--color-oxford);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: #fff;
+  background-color: var(--color-oxford);
+  background-image:
+    radial-gradient(60rem 40rem at 50% -10rem, rgb(98 101 255 / 0.28), transparent 70%),
+    radial-gradient(40rem 30rem at 100% 40%, rgb(163 232 218 / 0.08), transparent 70%),
+    radial-gradient(40rem 30rem at 0% 80%, rgb(98 101 255 / 0.12), transparent 70%);
+  background-repeat: no-repeat;
+  min-height: 100dvh;
+}
+
+::selection {
+  background: var(--color-indigo);
+  color: #fff;
+}
+
+/* Foco visible y consistente para teclado */
+:focus-visible {
+  outline: 3px solid var(--color-tiffany);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
