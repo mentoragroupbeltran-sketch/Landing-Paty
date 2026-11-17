@@ -1,0 +1,105 @@
+<Rive version="1" kind="fragment">
+    <ImageAsset file="mascot.png" name="lion_mascot" id="0:60"/>
+
+    <Artboard defaultStateMachineId="0:7" styleId="0:5" width="500" height="500" name="Artboard" id="0:2">
+        <LayoutComponentStyle name="Artboard Style" id="0:5"/>
+
+        <Fill name="Background" id="0:102">
+            <SolidColor colorValue="FFF8FAFC" name="Color" id="0:103"/>
+        </Fill>
+
+        <!-- Ambient circular glow behind the mascot -->
+        <Shape x="250" y="270" name="Glow" id="0:15">
+            <Ellipse width="380" height="380" originX="0.5" originY="0.5" name="Circle" id="0:104"/>
+            <Fill name="Fill" id="0:105">
+                <SolidColor colorValue="3338BDF8" name="Color" id="0:106"/>
+            </Fill>
+        </Shape>
+
+        <!-- The Mascot Character Image -->
+        <Node x="250" y="250" name="CharacterRoot" id="0:100">
+            <Image assetId="0:60" originX="0.5" originY="0.5" name="LionMascot" id="0:101"/>
+        </Node>
+
+        <StateMachine name="State Machine 1" id="0:7">
+            <StateMachineLayer name="IdleLayer" id="0:8">
+                <AnyState x="0" y="-120" id="0:107"/>
+                <ExitState x="120" y="-120" id="0:108"/>
+                <EntryState id="0:109">
+                    <StateTransition stateToId="0:12" id="0:110"/>
+                </EntryState>
+                <AnimationState x="200" animationId="0:6" id="0:12"/>
+            </StateMachineLayer>
+        </StateMachine>
+
+        <!-- Fluid idle breathing, hovering & subtle tilting animation -->
+        <LinearAnimation loopValue="loop" fps="60" duration="180" name="Idle" id="0:6">
+            <!-- Gentle floating up and down -->
+            <KeyedObject objectId="0:100" id="0:111">
+                <KeyedProperty property="y" id="0:112">
+                    <KeyFrameDouble value="250" frame="0" interpolationType="cubic" id="0:113">
+                        <CubicEaseInterpolator x1="0.4" y1="0" x2="0.2" y2="1" id="0:114"/>
+                    </KeyFrameDouble>
+                    <KeyFrameDouble value="238" frame="90" interpolationType="cubic" id="0:115">
+                        <CubicEaseInterpolator x1="0.4" y1="0" x2="0.2" y2="1" id="0:116"/>
+                    </KeyFrameDouble>
+                    <KeyFrameDouble value="250" frame="180" id="0:117"/>
+                </KeyedProperty>
+                <!-- Breathing scale squash and stretch -->
+                <KeyedProperty property="scaleX" id="0:118">
+                    <KeyFrameDouble value="1" frame="0" interpolationType="cubic" id="0:119">
+                        <CubicEaseInterpolator x1="0.4" y1="0" x2="0.2" y2="1" id="0:120"/>
+                    </KeyFrameDouble>
+                    <KeyFrameDouble value="1.03" frame="90" interpolationType="cubic" id="0:121">
+                        <CubicEaseInterpolator x1="0.4" y1="0" x2="0.2" y2="1" id="0:122"/>
+                    </KeyFrameDouble>
+                    <KeyFrameDouble value="1" frame="180" id="0:123"/>
+                </KeyedProperty>
+                <KeyedProperty property="scaleY" id="0:124">
+                    <KeyFrameDouble value="1" frame="0" interpolationType="cubic" id="0:125">
+                        <CubicEaseInterpolator x1="0.4" y1="0" x2="0.2" y2="1" id="0:126"/>
+                    </KeyFrameDouble>
+                    <KeyFrameDouble value="1.04" frame="90" interpolationType="cubic" id="0:127">
+                        <CubicEaseInterpolator x1="0.4" y1="0" x2="0.2" y2="1" id="0:128"/>
+                    </KeyFrameDouble>
+                    <KeyFrameDouble value="1" frame="180" id="0:129"/>
+                </KeyedProperty>
+                <!-- Subtle playful head/body tilt -->
+                <KeyedProperty property="rotation" id="0:130">
+                    <KeyFrameDouble value="0" frame="0" interpolationType="cubic" id="0:131">
+                        <CubicEaseInterpolator x1="0.4" y1="0" x2="0.2" y2="1" id="0:132"/>
+                    </KeyFrameDouble>
+                    <KeyFrameDouble value="0.04" frame="45" interpolationType="cubic" id="0:133">
+                        <CubicEaseInterpolator x1="0.4" y1="0" x2="0.2" y2="1" id="0:134"/>
+                    </KeyFrameDouble>
+                    <KeyFrameDouble value="-0.03" frame="135" interpolationType="cubic" id="0:135">
+                        <CubicEaseInterpolator x1="0.4" y1="0" x2="0.2" y2="1" id="0:136"/>
+                    </KeyFrameDouble>
+                    <KeyFrameDouble value="0" frame="180" id="0:137"/>
+                </KeyedProperty>
+            </KeyedObject>
+
+            <!-- Glow pulsing -->
+            <KeyedObject objectId="0:15" id="0:138">
+                <KeyedProperty property="scaleX" id="0:139">
+                    <KeyFrameDouble value="1" frame="0" interpolationType="cubic" id="0:140">
+                        <CubicEaseInterpolator x1="0.4" y1="0" x2="0.2" y2="1" id="0:141"/>
+                    </KeyFrameDouble>
+                    <KeyFrameDouble value="1.1" frame="90" interpolationType="cubic" id="0:142">
+                        <CubicEaseInterpolator x1="0.4" y1="0" x2="0.2" y2="1" id="0:143"/>
+                    </KeyFrameDouble>
+                    <KeyFrameDouble value="1" frame="180" id="0:144"/>
+                </KeyedProperty>
+                <KeyedProperty property="scaleY" id="0:145">
+                    <KeyFrameDouble value="1" frame="0" interpolationType="cubic" id="0:146">
+                        <CubicEaseInterpolator x1="0.4" y1="0" x2="0.2" y2="1" id="0:147"/>
+                    </KeyFrameDouble>
+                    <KeyFrameDouble value="1.1" frame="90" interpolationType="cubic" id="0:148">
+                        <CubicEaseInterpolator x1="0.4" y1="0" x2="0.2" y2="1" id="0:149"/>
+                    </KeyFrameDouble>
+                    <KeyFrameDouble value="1" frame="180" id="0:150"/>
+                </KeyedProperty>
+            </KeyedObject>
+        </LinearAnimation>
+    </Artboard>
+</Rive>

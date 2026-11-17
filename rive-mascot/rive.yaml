@@ -1,0 +1,7 @@
+name: rive-mascot
+logs:
+  file: build/rive.log
+  problems: build/problems.log
+push:
+  projectId: 2059551
+  fileId: 2733949

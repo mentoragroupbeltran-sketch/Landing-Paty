@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Logo from "@/components/Logo";
 import StepHeading from "@/components/StepHeading";
 import VideoPlayer from "@/components/VideoPlayer";
@@ -7,6 +8,28 @@ import { site } from "@/lib/site";
 export default function Home() {
   return (
     <>
+      {/* TOP TAB SWITCHER */}
+      <div className="w-full bg-slate-900/60 border-b border-white/10 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-white/80">Mentora VSL</span>
+          </div>
+
+          <nav className="flex items-center gap-1.5 p-1 bg-white/5 rounded-xl border border-white/10 text-xs font-semibold">
+            <span className="px-3 py-1 rounded-lg bg-white/15 text-white font-bold shadow-xs">
+              🎯 Landing VSL
+            </span>
+            <Link
+              href="/personaje"
+              className="px-3 py-1 rounded-lg text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 transition-colors flex items-center gap-1"
+            >
+              <span>🦁</span>
+              <span>Personaje Rive</span>
+            </Link>
+          </nav>
+        </div>
+      </div>
+
       <main className="mx-auto w-full max-w-4xl px-4 pb-14 pt-7 sm:px-6 sm:pt-10">
         {/* ENCABEZADO */}
         <header className="flex flex-col items-center text-center">
@@ -40,7 +63,7 @@ export default function Home() {
       </main>
 
       <footer className="border-t border-white/10 px-4 py-6 text-center text-xs text-columbia/60">
-        © {new Date().getFullYear()} {site.legalEntity} ·{" "}
+        © 2026 {site.legalEntity} ·{" "}
         <a href="/privacidad" className="underline underline-offset-2 hover:text-tiffany">
           Política de Privacidad
         </a>
