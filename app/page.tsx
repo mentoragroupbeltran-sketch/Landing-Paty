@@ -42,7 +42,7 @@ export default function Home() {
       <footer className="border-t border-white/10 px-4 py-6 text-center text-xs text-columbia/60">
         © 2026 {site.legalEntity} ·{" "}
         <a href="/privacidad" className="underline underline-offset-2 hover:text-tiffany">
-          Política de Privacidad
+          Términos y Condiciones & Política de Privacidad
         </a>
       </footer>
     </>

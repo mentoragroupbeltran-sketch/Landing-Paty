@@ -47,10 +47,10 @@ export const site = {
 } as const;
 
 /**
- * ⚠️ BORRADOR LEGAL — pendiente de revisión por asesoría legal y aprobación de Isamar.
- * Si cambias el texto del consentimiento, SUBE la versión: queda registrada en cada lead.
+ * Versión de los Términos y Condiciones / Política de Privacidad aprobada.
+ * Se registra con cada lead para auditoría y trazabilidad legal.
  */
-export const CONSENT_VERSION = "v0.1-borrador-2026-11";
+export const CONSENT_VERSION = "v1.0-2026-11";
 
 export const consentText =
   "He leído la Política de Privacidad y autorizo a Mentora Group Beltrán S.A.C. a tratar mis datos para contactarme por WhatsApp o llamada con información sobre sus programas de inglés.";
