@@ -1,49 +1,31 @@
 /**
  * MENTORA — Receptor de leads de la landing VSL → Google Sheets
  * ----------------------------------------------------------------
- * Pégalo en: Hoja de cálculo → Extensiones → Apps Script → Code.gs
- * Guía completa: docs/GUIA-DESPLIEGUE.md (paso 1).
+ * Compatible con la plantilla oficial de MENTORA:
+ * Col A: ID
+ * Col B: Fecha registro
+ * Col C: Nombre completo
+ * Col D: WhatsApp
+ * Col E: Chat (Enlace directo a WhatsApp)
+ * Col F: Ciudad
+ * Col G: Autoriza datos (Sí)
+ * Col H: Origen (Facebook Ads, Instagram Ads, TikTok Ads, Google Ads, etc.)
+ * Col I: Campaña / anuncio (ej. Paty)
+ * Col J: Estado (Nuevo)
+ * Col K: Asesor
+ * Col L: Intentos de contacto
+ * Col M: Último contacto
+ * Col N: Próximo seguimiento
+ * Col O: Motivo de pérdida
+ * Col P: Notas
  *
- * Seguridad:
- *  - Solo acepta envíos firmados con HMAC-SHA256 usando SHARED_SECRET
- *    (Propiedades del script — nunca se escribe en este código).
- *  - Rechaza envíos con más de 5 minutos de antigüedad (anti-repetición).
- *  - Vuelve a validar todos los campos.
- *  - Evita duplicados: por ID de lead (reintentos) y por WhatsApp (6 horas).
- *  - Límite global de registros por minuto.
- *  - Neutraliza fórmulas (= + - @) para evitar inyección en la hoja.
- *  - No guarda IP, navegador ni ningún dato extra (minimización de datos).
+ * Pégalo en: Hoja de cálculo → Extensiones → Apps Script → Código.gs
  */
 
-var SHEET_NAME = 'Leads';
 var TIMEZONE = 'America/Lima';
-var MAX_PER_MINUTE = 60;          // tope global de registros por minuto
-var MAX_AGE_MS = 5 * 60 * 1000;   // validez de la firma
-var PHONE_DEDUPE_SECONDS = 21600; // 6 horas (máximo de CacheService)
-
-var HEADERS = [
-  'ID Lead',
-  'Fecha y hora (Perú)',
-  'Nombre completo',
-  'WhatsApp',
-  'Ciudad',
-  'Origen',
-  'Campaña',
-  'utm_source',
-  'utm_medium',
-  'utm_campaign',
-  'utm_content',
-  'utm_term',
-  'Consentimiento',
-  'Fecha consentimiento (Perú)',
-  'Versión consentimiento',
-  'Estado comercial',
-  'Asesor asignado',
-  'Notas comerciales',
-  'Fecha último contacto'
-];
-
-var ESTADOS = ['NUEVO', 'CONTACTADO', 'NO CONTESTA', 'INTERESADO', 'MATRICULADO', 'NO INTERESADO', 'DATOS ERRÓNEOS'];
+var MAX_PER_MINUTE = 60;          // tope de seguridad de registros por minuto
+var MAX_AGE_MS = 5 * 60 * 1000;   // validez de la firma (5 minutos)
+var PHONE_DEDUPE_SECONDS = 21600; // 6 horas sin duplicar el mismo número
 
 /* ============================ ENTRADA ============================ */
 
@@ -77,9 +59,9 @@ function doPost(e) {
   }
 }
 
-/** Una visita con el navegador a la URL solo confirma que el servicio está activo. */
+/** Comprueba en el navegador que el Web App está activo. */
 function doGet() {
-  return json_({ ok: true, service: 'mentora-leads', note: 'Usa POST firmado.' });
+  return json_({ ok: true, service: 'mentora-leads', note: 'Servicio activo. Requiere POST firmado.' });
 }
 
 /* ============================ GUARDADO ============================ */
@@ -92,52 +74,65 @@ function saveLead_(lead) {
   try {
     var sheet = getSheet_();
 
-    // 1) Duplicado por reintento (mismo ID de lead)
+    // 1) Duplicado por ID de lead (reintentos de red)
     if (cache.get('id:' + lead.lead_id)) return json_({ ok: true, duplicate: true, lead_id: lead.lead_id });
-    var found = sheet.getRange(1, 1, Math.max(sheet.getLastRow(), 1), 1)
-      .createTextFinder(lead.lead_id).matchEntireCell(true).findNext();
-    if (found) {
-      cache.put('id:' + lead.lead_id, '1', PHONE_DEDUPE_SECONDS);
-      return json_({ ok: true, duplicate: true, lead_id: lead.lead_id });
-    }
 
-    // 2) Mismo WhatsApp en las últimas 6 horas → no se duplica la fila
-    var phoneKey = 'ph:' + lead.whatsapp;
+    // 2) Mismo WhatsApp en las últimas 6 horas → evitar duplicado accidental
+    var cleanDigits = (lead.whatsapp || '').replace(/\D/g, '');
+    var phoneKey = 'ph:' + cleanDigits;
     if (cache.get(phoneKey)) return json_({ ok: true, duplicate: true, lead_id: lead.lead_id });
 
-    // 3) Límite global por minuto
+    // 3) Límite de envíos por minuto
     var bucket = 'rate:' + Math.floor(Date.now() / 60000);
     var count = Number(cache.get(bucket) || 0);
     if (count >= MAX_PER_MINUTE) return json_({ ok: false, error: 'rate_limited' });
     cache.put(bucket, String(count + 1), 120);
 
     var now = new Date();
-    var consentDate = new Date(lead.consentimiento_fecha_iso);
-    if (isNaN(consentDate.getTime())) consentDate = now;
+    var fechaStr = Utilities.formatDate(now, TIMEZONE, 'yyyy-MM-dd HH:mm');
 
-    var row = [
-      lead.lead_id,
-      fmt_(now),
-      lead.nombre,
-      lead.whatsapp,
-      lead.ciudad,
-      lead.origen,
-      lead.campana,
-      lead.utm_source,
-      lead.utm_medium,
-      lead.utm_campaign,
-      lead.utm_content,
-      lead.utm_term,
-      'SÍ',
-      fmt_(consentDate),
-      lead.consentimiento_version,
-      'NUEVO',
-      '',
-      '',
-      ''
-    ].map(safeCell_);
+    // Enlace de WhatsApp directo con código de país
+    var waLink = cleanDigits ? ('=HYPERLINK("https://wa.me/' + cleanDigits + '", "Abrir chat")') : '';
 
-    sheet.appendRow(row);
+    // Detectar fila de encabezados en la plantilla de Mentora
+    var headerRow = findHeaderRow_(sheet);
+    var nextRow = sheet.getLastRow() + 1;
+    if (nextRow <= headerRow) nextRow = headerRow + 1;
+
+    // Calcular ID incremental (1, 2, 3...)
+    var nextId = 1;
+    if (nextRow > headerRow + 1) {
+      var prevIdVal = sheet.getRange(nextRow - 1, 1).getValue();
+      if (!isNaN(prevIdVal) && prevIdVal > 0) {
+        nextId = Number(prevIdVal) + 1;
+      } else {
+        nextId = nextRow - headerRow;
+      }
+    }
+
+    // Datos correspondientes a las columnas A hasta P
+    var rowValues = [
+      [
+        nextId,                              // Col A: ID
+        fechaStr,                            // Col B: Fecha registro
+        lead.nombre,                         // Col C: Nombre completo
+        lead.whatsapp,                       // Col D: WhatsApp
+        waLink,                              // Col E: Chat
+        lead.ciudad,                         // Col F: Ciudad
+        'Sí',                                // Col G: Autoriza datos
+        lead.origen || 'Web directa',        // Col H: Origen (Facebook Ads, TikTok Ads, etc.)
+        lead.campana || '(sin campaña)',     // Col I: Campaña / anuncio
+        'Nuevo',                             // Col J: Estado
+        '',                                  // Col K: Asesor
+        '',                                  // Col L: Intentos de contacto
+        '',                                  // Col M: Último contacto
+        '',                                  // Col N: Próximo seguimiento
+        '',                                  // Col O: Motivo de pérdida
+        ''                                   // Col P: Notas
+      ]
+    ];
+
+    sheet.getRange(nextRow, 1, 1, 16).setValues(rowValues);
     SpreadsheetApp.flush();
 
     cache.put('id:' + lead.lead_id, '1', PHONE_DEDUPE_SECONDS);
@@ -149,36 +144,37 @@ function saveLead_(lead) {
   }
 }
 
-/* ============================ VALIDACIÓN ============================ */
+/* ============================ UTILIDADES ============================ */
+
+function findHeaderRow_(sheet) {
+  var maxSearch = Math.min(sheet.getLastRow(), 10);
+  for (var r = 1; r <= maxSearch; r++) {
+    var val = String(sheet.getRange(r, 3).getValue()).toLowerCase(); // Columna C (Nombre completo)
+    if (val.indexOf('nombre') !== -1) return r;
+    var valA = String(sheet.getRange(r, 1).getValue()).toLowerCase(); // Columna A (ID)
+    if (valA === 'id') return r;
+  }
+  return 4; // Por defecto fila 4 en la plantilla de Mentora
+}
+
+function getSheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  // Busca por los nombres comunes de la pestaña
+  var names = ['Leads', 'Gestión de leads', 'Gestion de leads', 'LEADS'];
+  for (var i = 0; i < names.length; i++) {
+    var s = ss.getSheetByName(names[i]);
+    if (s) return s;
+  }
+  // Si no encuentra por nombre, toma la primera pestaña
+  return ss.getSheets()[0];
+}
 
 function validate_(l) {
   if (!l || typeof l !== 'object') return 'payload';
-  var str = function (v, max) { return typeof v === 'string' && v.length <= max; };
-  if (!/^MEN-[0-9A-F]{10}$/.test(l.lead_id || '')) return 'lead_id';
-  if (!str(l.nombre, 90) || l.nombre.replace(/^'/, '').length < 3) return 'nombre';
-  if (!/^\+\d{9,15}$/.test(l.whatsapp || '')) return 'whatsapp';
-  if (!str(l.ciudad, 70) || l.ciudad.replace(/^'/, '').length < 2) return 'ciudad';
-  var opt = ['origen', 'campana', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'consentimiento_version'];
-  for (var i = 0; i < opt.length; i++) {
-    if (l[opt[i]] != null && !str(l[opt[i]], 160)) return opt[i];
-  }
-  if (l.consentimiento !== 'SÍ') return 'consentimiento';
-  if (!str(l.consentimiento_version, 60) || !l.consentimiento_version) return 'consentimiento_version';
+  if (!l.nombre || String(l.nombre).trim().length < 2) return 'nombre';
+  if (!l.whatsapp || String(l.whatsapp).trim().length < 8) return 'whatsapp';
+  if (!l.ciudad || String(l.ciudad).trim().length < 2) return 'ciudad';
   return null;
-}
-
-/* ============================ UTILIDADES ============================ */
-
-/** Anti-inyección de fórmulas: todo lo que empiece con = + - @ se guarda como texto. */
-function safeCell_(v) {
-  var s = v == null ? '' : String(v);
-  s = s.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '');
-  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
-  return s.slice(0, 200);
-}
-
-function fmt_(d) {
-  return Utilities.formatDate(d, TIMEZONE, 'yyyy-MM-dd HH:mm:ss');
 }
 
 function hmacHex_(message, secret) {
@@ -197,75 +193,56 @@ function json_(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
 
-function getSheet_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName(SHEET_NAME);
-  if (!sheet) sheet = prepararHoja_(ss);
-  return sheet;
-}
-
-/* ============================ CONFIGURACIÓN (ejecutar a mano) ============================ */
+/* ============================ FUNCIONES PARA EJECUTAR A MANO ============================ */
 
 /**
- * PASO A — Ejecuta esta función UNA vez desde el editor (botón ▶ Ejecutar).
- * Crea la pestaña "Leads" con encabezados, formatos y la lista de estados comerciales,
- * y genera un SHARED_SECRET aleatorio si todavía no existe.
+ * PASO 1: Ejecuta esta función UNA vez para inicializar el secreto y permisos.
  */
 function configurar() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   ss.setSpreadsheetTimeZone(TIMEZONE);
-  var sheet = ss.getSheetByName(SHEET_NAME) || prepararHoja_(ss);
+  var sheet = getSheet_();
 
   var props = PropertiesService.getScriptProperties();
   if (!props.getProperty('SHARED_SECRET')) {
     props.setProperty('SHARED_SECRET', Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, ''));
   }
-  console.log('Hoja lista: "' + sheet.getName() + '".');
-  console.log('Ahora ejecuta la función verSecreto para copiar el secreto a Vercel.');
+  console.log('✅ Hoja vinculada correctamente: "' + sheet.getName() + '"');
+  console.log('Ahora ejecuta la función "verSecreto" para copiar el secreto a Vercel.');
 }
 
 /**
- * PASO B — Muestra el secreto en el registro de ejecución para copiarlo
- * a la variable GOOGLE_APPS_SCRIPT_SECRET de Vercel. No lo compartas por chat ni correo.
+ * PASO 2: Muestra tu secreto para pegarlo en Vercel (GOOGLE_APPS_SCRIPT_SECRET).
  */
 function verSecreto() {
+  console.log('🔑 TU SECRETO DE VERCEL (Copia exactamente esto):');
   console.log(PropertiesService.getScriptProperties().getProperty('SHARED_SECRET'));
 }
 
-/** Genera un secreto nuevo (si crees que se filtró). Recuerda actualizarlo en Vercel. */
-function rotarSecreto() {
-  PropertiesService.getScriptProperties().setProperty(
-    'SHARED_SECRET', Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, ''));
-  console.log('Secreto rotado. Ejecuta verSecreto y actualiza Vercel.');
-}
-
-function prepararHoja_(ss) {
-  var sheet = ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
-  sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS])
-    .setFontWeight('bold').setFontColor('#FFFFFF').setBackground('#101B2E');
-  sheet.setFrozenRows(1);
-  var estado = SpreadsheetApp.newDataValidation().requireValueInList(ESTADOS, true).setAllowInvalid(false).build();
-  sheet.getRange(2, 16, sheet.getMaxRows() - 1, 1).setDataValidation(estado);
-  sheet.setColumnWidths(1, HEADERS.length, 150);
-  sheet.setColumnWidth(3, 220);
-  return sheet;
-}
-
 /**
- * PRUEBA INTERNA — simula un envío firmado tal como lo hará Vercel.
- * Ejecútala después de configurar(): debe aparecer una fila "PRUEBA Interna" en la hoja.
- * Bórrala después.
+ * PASO 3 (Opcional): Inserta un lead de prueba para comprobar que se escribe en tu hoja.
  */
 function pruebaInterna() {
   var secret = PropertiesService.getScriptProperties().getProperty('SHARED_SECRET');
   var id = 'MEN-' + Utilities.getUuid().replace(/-/g, '').slice(0, 10).toUpperCase();
   var payload = JSON.stringify({
-    lead_id: id, nombre: 'PRUEBA Interna', whatsapp: '+51900000000', ciudad: 'Lima',
-    origen: 'Prueba', campana: '(sin campaña)', utm_source: '', utm_medium: '', utm_campaign: '',
-    utm_content: '', utm_term: '', consentimiento: 'SÍ',
-    consentimiento_fecha_iso: new Date().toISOString(), consentimiento_version: 'prueba', estado: 'NUEVO'
+    lead_id: id,
+    nombre: 'PRUEBA Automática',
+    whatsapp: '+51987654321',
+    ciudad: 'Lima',
+    origen: 'Facebook Ads',
+    campana: 'Paty',
+    consentimiento: 'SÍ'
   });
   var ts = Date.now();
-  var res = doPost({ postData: { contents: JSON.stringify({ payload: payload, ts: ts, sig: hmacHex_(ts + '.' + payload, secret) }) } });
-  console.log(res.getContent());
+  var res = doPost({
+    postData: {
+      contents: JSON.stringify({
+        payload: payload,
+        ts: ts,
+        sig: hmacHex_(ts + '.' + payload, secret)
+      })
+    }
+  });
+  console.log('Resultado:', res.getContent());
 }

@@ -56,7 +56,7 @@ describe("buildLead", () => {
     expect(r.lead.whatsapp).toBe("+51987654321");
     expect(r.lead.estado).toBe("NUEVO");
     expect(r.lead.consentimiento).toBe("SÍ");
-    expect(r.lead.origen).toBe("Directo");
+    expect(r.lead.origen).toBe("Web directa");
     expect(r.lead.campana).toBe("(sin campaña)");
     expect(r.lead.lead_id).toMatch(/^MEN-[0-9A-F]{10}$/);
   });
@@ -86,14 +86,14 @@ describe("buildLead", () => {
 
 describe("origen", () => {
   it.each([
-    [{ utm_source: "facebook" }, "Meta Ads"],
-    [{ utm_source: "ig" }, "Meta Ads"],
+    [{ utm_source: "facebook" }, "Facebook Ads"],
+    [{ utm_source: "ig" }, "Instagram Ads"],
     [{ utm_source: "tiktok" }, "TikTok Ads"],
     [{ utm_source: "google" }, "Google Ads"],
-    [{ has_fbclid: true }, "Meta (sin UTM)"],
-    [{ has_ttclid: true }, "TikTok (sin UTM)"],
-    [{ referrer_host: "l.instagram.com" }, "Meta orgánico"],
-    [{}, "Directo"],
+    [{ has_fbclid: true }, "Facebook Ads"],
+    [{ has_ttclid: true }, "TikTok Ads"],
+    [{ referrer_host: "l.instagram.com" }, "Instagram orgánico"],
+    [{}, "Web directa"],
   ])("%j → %s", (a, out) => expect(deriveOrigin(a)).toBe(out));
 });
 
