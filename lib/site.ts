@@ -13,9 +13,9 @@ export const site = {
    * Para usarlo: copia el logo a /public (por ejemplo /public/logo-mentora.svg)
    * y escribe aquí la ruta. Mientras sea null se muestra un logotipo de texto provisional.
    */
-  logoSrc: null as string | null,
-  logoWidth: 180,
-  logoHeight: 48,
+  logoSrc: "/logo-mentora-blanco.png",
+  logoWidth: 250,
+  logoHeight: 35,
 
   headline: {
     lead: "Tu inglés no tiene por qué",

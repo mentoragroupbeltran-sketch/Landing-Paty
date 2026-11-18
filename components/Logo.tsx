@@ -14,7 +14,7 @@ export default function Logo() {
         alt="Mentora"
         width={site.logoWidth}
         height={site.logoHeight}
-        className="h-10 w-auto sm:h-12"
+        className="h-8 w-auto sm:h-10 object-contain"
         fetchPriority="high"
       />
     );
