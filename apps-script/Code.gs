@@ -94,21 +94,15 @@ function saveLead_(lead) {
     // Enlace de WhatsApp directo con código de país
     var waLink = cleanDigits ? ('=HYPERLINK("https://wa.me/' + cleanDigits + '", "Abrir chat")') : '';
 
-    // Detectar fila de encabezados en la plantilla de Mentora
+    // Detectar fila de encabezados en la plantilla de Mentora (fila 4)
     var headerRow = findHeaderRow_(sheet);
-    var nextRow = sheet.getLastRow() + 1;
-    if (nextRow <= headerRow) nextRow = headerRow + 1;
+
+    // Buscar la PRIMERA fila vacía desde arriba (revisando Col C: Nombre)
+    // Evita saltar hasta la fila 1005 por las fórmulas preexistentes de la plantilla
+    var nextRow = findFirstEmptyLeadRow_(sheet, headerRow);
 
     // Calcular ID incremental (1, 2, 3...)
-    var nextId = 1;
-    if (nextRow > headerRow + 1) {
-      var prevIdVal = sheet.getRange(nextRow - 1, 1).getValue();
-      if (!isNaN(prevIdVal) && prevIdVal > 0) {
-        nextId = Number(prevIdVal) + 1;
-      } else {
-        nextId = nextRow - headerRow;
-      }
-    }
+    var nextId = nextRow - headerRow;
 
     // Datos correspondientes a las columnas A hasta P
     var rowValues = [
@@ -155,6 +149,25 @@ function findHeaderRow_(sheet) {
     if (valA === 'id') return r;
   }
   return 4; // Por defecto fila 4 en la plantilla de Mentora
+}
+
+/**
+ * Encuentra la primera fila verdaderamente libre revisando la Columna C (Nombre completo).
+ * Esto evita saltar hasta la fila 1005 debido a las fórmulas vacías precargadas en la plantilla.
+ */
+function findFirstEmptyLeadRow_(sheet, headerRow) {
+  var startRow = headerRow + 1; // fila 5
+  var totalRows = Math.min(sheet.getMaxRows() - headerRow, 1200);
+  if (totalRows <= 0) return startRow;
+
+  var colC = sheet.getRange(startRow, 3, totalRows, 1).getValues();
+  for (var i = 0; i < colC.length; i++) {
+    var cellVal = String(colC[i][0] || '').trim();
+    if (!cellVal) {
+      return startRow + i;
+    }
+  }
+  return startRow + totalRows;
 }
 
 function getSheet_() {
