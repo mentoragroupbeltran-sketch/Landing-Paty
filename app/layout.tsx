@@ -8,7 +8,7 @@ import "@fontsource/dm-sans/700.css";
 import "./globals.css";
 import Tracking from "@/components/Tracking";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://landing.mentora.pe";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
