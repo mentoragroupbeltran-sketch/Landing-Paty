@@ -72,6 +72,7 @@ export function deriveOrigin(a: LeadRequest["attribution"]): string {
   const src = (a?.utm_source || "").toLowerCase();
   if (/(facebook|instagram|meta|^fb$|^ig$|^an$|messenger)/.test(src)) return "Meta Ads";
   if (/tiktok|^tt$/.test(src)) return "TikTok Ads";
+  if (/(google|gads|adwords)/.test(src)) return "Google Ads";
   if (src) return `Otro: ${cleanText(a?.utm_source, 60)}`;
   if (a?.has_fbclid) return "Meta (sin UTM)";
   if (a?.has_ttclid) return "TikTok (sin UTM)";

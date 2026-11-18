@@ -89,6 +89,7 @@ describe("origen", () => {
     [{ utm_source: "facebook" }, "Meta Ads"],
     [{ utm_source: "ig" }, "Meta Ads"],
     [{ utm_source: "tiktok" }, "TikTok Ads"],
+    [{ utm_source: "google" }, "Google Ads"],
     [{ has_fbclid: true }, "Meta (sin UTM)"],
     [{ has_ttclid: true }, "TikTok (sin UTM)"],
     [{ referrer_host: "l.instagram.com" }, "Meta orgánico"],
