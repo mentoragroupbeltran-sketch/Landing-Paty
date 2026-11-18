@@ -15,6 +15,17 @@ export const metadata: Metadata = {
   title: "Mentora | Tu inglés no tiene por qué seguir esperando",
   description:
     "Aprende inglés online, a tu ritmo y desde donde estés. Avanza por niveles alineados al MCER.",
+  icons: {
+    icon: [
+      { url: "/mentora-48x48.png", sizes: "48x48", type: "image/png" },
+      { url: "/mentora-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/mentora-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    shortcut: "/mentora-48x48.png",
+    apple: [
+      { url: "/mentora-192x192.png", sizes: "192x192", type: "image/png" },
+    ],
+  },
   openGraph: {
     title: "Tu inglés no tiene por qué seguir esperando | Mentora",
     description:
